@@ -134,6 +134,10 @@ cp -Rv "$PREBUILT_DEPLOY_DATA_DIR"/* "$BUNDLE_DIR/Contents/macOS"
 cp -av "$BUILD_DIR/service/server/$APP_NAME-service" "$BUNDLE_DIR/Contents/macOS"
 rsync -av --exclude="$PLIST_NAME" --exclude=post_install.sh --exclude=post_uninstall.sh "$DEPLOY_DATA_DIR/" "$BUNDLE_DIR/Contents/macOS/"
 
+echo "App bundle created at $BUNDLE_DIR"
+echo "Skipping installer creation and signing for local run."
+exit 0
+
 if [ "${MAC_APP_CERT_PW+x}" ]; then
 
   # Path to the p12 that contains the Developer ID *Application* certificate
