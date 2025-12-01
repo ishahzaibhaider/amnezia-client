@@ -11,11 +11,7 @@ import Style 1.0
 Button {
     id: root
 
-    property string defaultButtonColor: AmneziaStyle.color.paleGray
-    property string progressButtonColor: AmneziaStyle.color.paleGray
-    property string connectedButtonColor: AmneziaStyle.color.goldenApricot
     property bool buttonActiveFocus: activeFocus && (Qt.platform.os !== "android" || SettingsController.isOnTv())
-
     property bool isFocusable: true
     
     Keys.onTabPressed: {
@@ -42,8 +38,8 @@ Button {
         FocusController.nextKeyRightItem()
     }
         
-    implicitWidth: 190
-    implicitHeight: 190
+    implicitWidth: 250
+    implicitHeight: 250
 
     text: ConnectionController.connectionStateText
 
@@ -55,114 +51,130 @@ Button {
         }
     }
 
-//    enabled: !ConnectionController.isConnectionInProgress
-
     background: Item {
         implicitWidth: parent.width
         implicitHeight: parent.height
         transformOrigin: Item.Center
 
-        Shape {
-            id: backgroundCircle
-            width: parent.implicitWidth
-            height: parent.implicitHeight
-            anchors.bottom: parent.bottom
-            anchors.right: parent.right
-            layer.enabled: true
-            layer.samples: 4
-            layer.smooth: true
-            layer.effect: DropShadow {
-                anchors.fill: backgroundCircle
-                horizontalOffset: 0
-                verticalOffset: 0
-                radius: 10
-                samples: 25
-                color: root.buttonActiveFocus ? AmneziaStyle.color.paleGray : AmneziaStyle.color.goldenApricot
-                source: backgroundCircle
-            }
-
-            ShapePath {
-                fillColor: AmneziaStyle.color.transparent
-                strokeColor: AmneziaStyle.color.paleGray
-                strokeWidth: root.buttonActiveFocus ? 1 : 0
-                capStyle: ShapePath.RoundCap
-
-                PathAngleArc {
-                    centerX: backgroundCircle.width / 2
-                    centerY: backgroundCircle.height / 2
-                    radiusX: 94
-                    radiusY: 94
-                    startAngle: 0
-                    sweepAngle: 360
-                }
-            }
-
-            ShapePath {
-                fillColor: AmneziaStyle.color.transparent
-                strokeColor: {
-                    if (ConnectionController.isConnectionInProgress) {
-                        return AmneziaStyle.color.darkCharcoal
-                    } else if (ConnectionController.isConnected) {
-                        return connectedButtonColor
+        // Segmented Ring (24 segments like competitor)
+        Repeater {
+            model: 24
+            
+            Rectangle {
+                width: 8
+                height: 24
+                radius: 4
+                
+                x: root.width / 2 - width / 2
+                y: 10
+                
+                transformOrigin: Item.Bottom
+                
+                rotation: index * 15
+                
+                color: {
+                    if (ConnectionController.isConnected) {
+                        return AmneziaStyle.color.primaryBlue
+                    } else if (ConnectionController.isConnectionInProgress) {
+                        // Animated segments during connection
+                        return (index < (connectingProgress * 24)) ? 
+                               AmneziaStyle.color.primaryLight : 
+                               AmneziaStyle.color.slateGray
                     } else {
-                        return defaultButtonColor
+                        return AmneziaStyle.color.slateGray
                     }
                 }
-                strokeWidth: root.buttonActiveFocus ? 2 : 3
-                capStyle: ShapePath.RoundCap
-
-                PathAngleArc {
-                    centerX: backgroundCircle.width / 2
-                    centerY: backgroundCircle.height / 2
-                    radiusX: 93 - (root.buttonActiveFocus ? 2 : 0)
-                    radiusY: 93 - (root.buttonActiveFocus ? 2 : 0)
-                    startAngle: 0
-                    sweepAngle: 360
+                
+                opacity: {
+                    if (ConnectionController.isConnected) {
+                        return 1.0
+                    } else if (ConnectionController.isConnectionInProgress) {
+                        return 0.8
+                    } else {
+                        return 0.3
+                    }
+                }
+                
+                Behavior on color {
+                    ColorAnimation { duration: 300 }
+                }
+                
+                Behavior on opacity {
+                    NumberAnimation { duration: 300 }
                 }
             }
-
-            MouseArea {
-                anchors.fill: parent
-
-                cursorShape: Qt.PointingHandCursor
-                enabled: false
+        }
+        
+        // Connecting animation progress
+        property real connectingProgress: 0
+        
+        SequentialAnimation {
+            running: ConnectionController.isConnectionInProgress
+            loops: Animation.Infinite
+            
+            NumberAnimation {
+                target: root.background
+                property: "connectingProgress"
+                from: 0
+                to: 1
+                duration: 2000
+                easing.type: Easing.InOutQuad
             }
         }
 
-        Shape {
-            id: shape
-            width: parent.implicitWidth
-            height: parent.implicitHeight
-            anchors.bottom: parent.bottom
-            anchors.right: parent.right
-            layer.enabled: true
-            layer.samples: 4
-
-            visible: ConnectionController.isConnectionInProgress
-
-            ShapePath {
-                fillColor: AmneziaStyle.color.transparent
-                strokeColor: AmneziaStyle.color.paleGray
-                strokeWidth: 3
-                capStyle: ShapePath.RoundCap
-
-                PathAngleArc {
-                    centerX: shape.width / 2
-                    centerY: shape.height / 2
-                    radiusX: 93
-                    radiusY: 93
-                    startAngle: 245
-                    sweepAngle: -180
+        // Center Button Circle
+        Rectangle {
+            id: centerButton
+            anchors.centerIn: parent
+            width: 180
+            height: 180
+            radius: 90
+            
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: AmneziaStyle.color.slateGray }
+                GradientStop { position: 1.0; color: AmneziaStyle.color.onyxBlack }
+            }
+            
+            border.width: root.buttonActiveFocus ? 2 : 0
+            border.color: AmneziaStyle.color.primaryBlue
+            
+            // Pulse animation when connected
+            SequentialAnimation {
+                running: ConnectionController.isConnected
+                loops: Animation.Infinite
+                
+                NumberAnimation {
+                    target: centerButton
+                    property: "scale"
+                    from: 1.0
+                    to: 1.05
+                    duration: 1500
+                    easing.type: Easing.InOutQuad
+                }
+                
+                NumberAnimation {
+                    target: centerButton
+                    property: "scale"
+                    from: 1.05
+                    to: 1.0
+                    duration: 1500
+                    easing.type: Easing.InOutQuad
                 }
             }
-
-            RotationAnimator {
-                target: shape
-                running: ConnectionController.isConnectionInProgress
-                from: 0
-                to: 360
-                loops: Animation.Infinite
-                duration: 1000
+            
+            // Glow effect when connected
+            layer.enabled: ConnectionController.isConnected
+            layer.effect: Glow {
+                samples: 20
+                radius: 16
+                color: AmneziaStyle.color.primaryBlue
+                spread: 0.3
+            }
+            
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                enabled: false
             }
         }
     }
@@ -172,13 +184,34 @@ Button {
 
         font.family: "PT Root UI VF"
         font.weight: 700
-        font.pixelSize: 20
+        font.pixelSize: 18
 
-        color: ConnectionController.isConnected ? connectedButtonColor : defaultButtonColor
-        text: root.text
+        color: {
+            if (ConnectionController.isConnected) {
+                return AmneziaStyle.color.primaryBlue
+            } else if (ConnectionController.isConnectionInProgress) {
+                return AmneziaStyle.color.primaryLight
+            } else {
+                return AmneziaStyle.color.paleGray
+            }
+        }
+        
+        text: {
+            if (ConnectionController.isConnected) {
+                return qsTr("CONNECTED")
+            } else if (ConnectionController.isConnectionInProgress) {
+                return qsTr("CONNECTING...")
+            } else {
+                return qsTr("CONNECT")
+            }
+        }
 
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
+        
+        Behavior on color {
+            ColorAnimation { duration: 300 }
+        }
     }
 
     onClicked: {

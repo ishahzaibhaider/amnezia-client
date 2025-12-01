@@ -83,126 +83,41 @@ PageType {
             objectName: "homeColumnLayout"
 
             anchors.fill: parent
-            anchors.topMargin: 12 + SettingsController.safeAreaTopMargin
+            anchors.topMargin: 40 + SettingsController.safeAreaTopMargin
             anchors.bottomMargin: 16
+            spacing: 0
 
-            BasicButtonType {
-                id: loggingButton
-                objectName: "loggingButton"
-
-                property bool isLoggingEnabled: SettingsController.isLoggingEnabled
-
-                Layout.alignment: Qt.AlignHCenter
-
-                implicitHeight: 36
-
-                defaultColor: AmneziaStyle.color.transparent
-                hoveredColor: AmneziaStyle.color.translucentWhite
-                pressedColor: AmneziaStyle.color.sheerWhite
-                disabledColor: AmneziaStyle.color.mutedGray
-                textColor: AmneziaStyle.color.mutedGray
-                borderWidth: 0
-
-                visible: isLoggingEnabled ? true : false
-                text: qsTr("Logging enabled")
-
-                Keys.onEnterPressed: this.clicked()
-                Keys.onReturnPressed: this.clicked()
-
-                onClicked: {
-                    PageController.goToPage(PageEnum.PageSettingsLogging)
-                }
-            }
-
-            BasicButtonType {
-                id: devGatewayButton
-                objectName: "devGatewayButton"
-
-                property bool isDevGatewayEnabled: SettingsController.isDevGatewayEnv
-
-                Layout.alignment: Qt.AlignHCenter
-
-                implicitHeight: 36
-
-                defaultColor: AmneziaStyle.color.transparent
-                hoveredColor: AmneziaStyle.color.translucentWhite
-                pressedColor: AmneziaStyle.color.sheerWhite
-                disabledColor: AmneziaStyle.color.mutedGray
-                textColor: AmneziaStyle.color.mutedGray
-                borderWidth: 0
-
-                visible: SettingsController.isDevModeEnabled && isDevGatewayEnabled
-                text: qsTr("Dev gateway enabled")
-
-                Keys.onEnterPressed: this.clicked()
-                Keys.onReturnPressed: this.clicked()
-
-                onClicked: {
-                    PageController.goToPage(PageEnum.PageDevMenu)
-                }
-            }
-
+            // Main Connect Button (centered, takes most space)
             ConnectButton {
                 id: connectButton
                 objectName: "connectButton"
 
                 Layout.fillHeight: true
                 Layout.alignment: Qt.AlignCenter
+                Layout.preferredWidth: 250
+                Layout.preferredHeight: 250
+                Layout.topMargin: 60
             }
 
-            BasicButtonType {
-                id: splitTunnelingButton
-                objectName: "splitTunnelingButton"
-
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
-                leftPadding: 16
-                rightPadding: 16
-
-                implicitHeight: 36
-
-                defaultColor: AmneziaStyle.color.transparent
-                hoveredColor: AmneziaStyle.color.translucentWhite
-                pressedColor: AmneziaStyle.color.sheerWhite
-                disabledColor: AmneziaStyle.color.mutedGray
-                textColor: AmneziaStyle.color.mutedGray
-                borderWidth: 0
-
-                buttonTextLabel.lineHeight: 20
-                buttonTextLabel.font.pixelSize: 14
-                buttonTextLabel.font.weight: 500
-
-                property bool isSplitTunnelingEnabled: SitesModel.isTunnelingEnabled || AppSplitTunnelingModel.isTunnelingEnabled ||
-                                                       ServersModel.isDefaultServerDefaultContainerHasSplitTunneling
-
-                text: isSplitTunnelingEnabled ? qsTr("Split tunneling enabled") : qsTr("Split tunneling disabled")
-
-                leftImageSource: isSplitTunnelingEnabled ? "qrc:/images/controls/split-tunneling.svg" : ""
-                leftImageColor: ""
-                rightImageSource: "qrc:/images/controls/chevron-down.svg"
-
-                Keys.onEnterPressed: this.clicked()
-                Keys.onReturnPressed: this.clicked()
-
-                onClicked: {
-                    homeSplitTunnelingDrawer.openTriggered()
-                }
-
-                HomeSplitTunnelingDrawer {
-                    id: homeSplitTunnelingDrawer
-                    objectName: "homeSplitTunnelingDrawer"
-
-                    parent: root
-                }
+            // Status Text
+            Text {
+                id: statusText
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: 40
+                
+                text: ConnectionController.isConnected ? qsTr("Connected") :
+                      ConnectionController.isConnecting ? qsTr("Connecting...") :
+                      qsTr("Tap to connect :)")
+                
+                font.pixelSize: 16
+                font.weight: Font.Normal
+                color: AmneziaStyle.color.mutedGray
             }
 
-            AdLabel {
-                id: adLabel
-
-                Layout.fillWidth: true
-                Layout.preferredHeight: adLabel.contentHeight
-                Layout.leftMargin: 16
-                Layout.rightMargin: 16
-                Layout.topMargin: 22
+            // Spacer to push everything up
+            Item {
+                Layout.fillHeight: true
+                Layout.minimumHeight: 40
             }
         }
     }
