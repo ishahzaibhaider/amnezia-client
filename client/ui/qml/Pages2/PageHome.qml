@@ -115,6 +115,13 @@ PageType {
                 color: AmneziaStyle.color.mutedGray
             }
 
+            // Connection Stats (Visible when connected)
+            ConnectionStats {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: 24
+                Layout.bottomMargin: 24
+            }
+
             // Spacer to push everything up
             Item {
                 Layout.fillHeight: true
